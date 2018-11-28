@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>拖动字段并排序</title>
+	<style type="text/css">
+		.source-box, .target-box {
+			border: 1px black dashed;
+			margin-top: 2em;
+			padding: 1em;
+			background-color: #f5f5f5;
+		}
+		.source-box legend, .target-box legend {
+			/* background-color: #f5f5f5;
+			border: 1px black dashed; */
+			font-size: 1.2em;
+			background-color: #fff;
+		}
+		.field-list {
+			padding: 0.5em;
+			min-height: 2em;
+			background-color: #fff;
+			position: relative;
+		}
+		.field-list span {
+			padding: 0.2em 0.5em;
+			background-color: #d5d5d5;
+			float: left;
+			margin-right: 0.2em;
+		}
+	</style>
+</head>
+<body>
+	<fieldset class="source-box">
+		<legend>数据库中的字段</legend>
+		<div class="field-list">
+			<span draggable="true" class="field">id</span>
+			<span draggable="true" class="field">title</span>
+			<span draggable="true" class="field">time</span>
+		</div>
+	</fieldset>
+
+	<fieldset class="target-box">
+		<legend>需要显示的字段</legend>
+		<div class="field-list">
+
+		</div>
+	</fieldset>
+
+	<script type="text/javascript">
+		var sourceBox = $Q('.source-box'),
+			targetBox = $Q('.target-box');
+
+		var dropElem = targetBox.$Q('.field-list')[1]
+
+		makeArray(sourceBox.$Q('.field-list')).forEach(function(node, index) {
+			$Q(node).addEvent('dragstart', dragstart, false)
+
+			// node.addEventListener('drag', function(e) {
+			// }, false)
+		})
+
+		function dragstart(e) {
+			var node = $Q(e.target),
+				insertOjb = {insertDirection: 'right', node: null}
+
+			// console.log('dragstart')
+			e.dataTransfer.effectAllowed = 'move'
+			// e.dataTransfer.dropEffect = 'move'
+			// e.dataTransfer.setData('elemIndex', node)
+			// console.log(e)
+
+			// 绑定拖拽放开后的元素事件
+			dropElem.addEvent('drop', function(e) {
+				// console.log('drop')
+				if (insertOjb.node && insertOjb.insertDirection == 'left') {
+					insertOjb.node.parentNode.insertBefore(node, insertOjb.node)
+				} else {
+					this.appendChild(node)
+				}
+				
+				this.removeEvent('drop', arguments.callee)
+				this.removeEvent('dragover', dragover)
+				node.removeEvent('dragstart', dragstart)
+				// dropFields.forEach(function(fieldNode, index) {
+				// 	fieldNode.removeEvent('dragover', dragoverField)
+				// })
+			}, false)
+
+			dropElem.addEvent('dragover', dragover, false)
+
+			// dropFields.forEach(function(node, index) {
+			// 	node.addEvent('dragover', dragoverField, false)
+			// })
+
+			function dragover(e) {
+				console.log('dragover')
+				e.preventDefault()
+				// console.log(e);
+				if (/\bfield(?![a-zA-Z0-9\-\_])/g.test(e.toElement.className)) {
+					dragoverField(e)
+				}
+			}
+
+			function dragoverField(e) {
+				var field= e.toElement,
+					x = e.offsetX,
+					direction
+					elemMiddleX = field.offsetWidth / 2
+				
+				if (x > elemMiddleX) {
+					direction = 'right'
+				} else {
+					direction = 'left'
+				}
+				insertOjb.insertDirection = direction
+				insertOjb.node = field
+			}
+		}
+
+		function makeArray(arrLike) {
+			return Array.prototype.slice.call(arrLike)
+		}
+
+		function $Q(selector) {
+			var ret
+			if (selector.nodeType && selector.nodeType == 1 && typeof(selector.nodeName) == 'string') {
+				ret = [selector]
+			} else {
+				ret = document.querySelectorAll(selector)
+			}
+
+			function EventHandler(ret) {
+				ret.addEvent = function() {
+					if (this.addEventListener) {
+						this.addEventListener.apply(this, arguments)
+					} else if(this.attachEvent) {
+						this.attachEvent('on' + arguments[0], arguments[1])
+					} else {
+						this['on' + arguments[0]] = arguments[1]
+					}
+				}
+				ret.removeEvent = function() {
+					if (this.removeEventListener) {
+						this.removeEventListener.apply(this, arguments)
+					} else if(this.detachEvent) {
+						this.detachEvent('on' + arguments[0], arguments[1])
+					} else {
+						this['on' + arguments[0]] = null
+					}
+				}
+			}
+			
+
+			if (ret.length == 1) {
+				ret[0].$Q = $Q
+				EventHandler(ret[0])
+				return ret[0]
+			} else {
+				makeArray(ret).forEach(function(el) {
+					el.$Q = $Q
+					EventHandler(el)
+				})
+				return ret;
+			}
+		}
+	</script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>拖动字段并排序</title>
+	<style type="text/css">
+		.source-box, .target-box {
+			border: 1px black dashed;
+			margin-top: 2em;
+			padding: 1em;
+			background-color: #f5f5f5;
+		}
+		.source-box legend, .target-box legend {
+			/* background-color: #f5f5f5;
+			border: 1px black dashed; */
+			font-size: 1.2em;
+		}
+		.field-list {
+			padding: 0.5em;
+			min-height: 2em;
+			background-color: #fff;
+			position: relative;
+		}
+		.field-list span {
+			padding: 0.2em 0.5em;
+			background-color: #d5d5d5;
+			float: left;
+			margin-right: 0.2em;
+		}
+	</style>
+</head>
+<body>
+	<fieldset class="source-box">
+		<legend>数据库中的字段</legend>
+		<div class="field-list">
+			<span draggable="true" class="field">id</span>
+			<span draggable="true" class="field">title</span>
+			<span draggable="true" class="field">time</span>
+		</div>
+	</fieldset>
+
+	<fieldset class="target-box">
+		<legend>需要显示的字段</legend>
+		<div class="field-list">
+
+		</div>
+	</fieldset>
+
+	<script type="text/javascript">
+		var sourceBox = document.querySelector('.source-box'),
+			targetBox = document.querySelector('.target-box');
+
+		var dropElem = targetBox.querySelector('.field-list')
+
+		makeArray(sourceBox.querySelectorAll('.field-list')).forEach(function(node, index) {
+			node.addEventListener('dragstart', dragstart, false)
+
+			// node.addEventListener('drag', function(e) {
+			// }, false)
+		})
+
+		function dragstart(e) {
+			var node = e.target,
+				dropFields = makeArray(dropElem.querySelectorAll('span')),
+				insertOjb = {insertDirection: 'right', node: null}
+
+			// console.log('dragstart')
+			e.dataTransfer.effectAllowed = 'move'
+			// e.dataTransfer.dropEffect = 'move'
+			// e.dataTransfer.setData('elemIndex', node)
+			// console.log(e)
+
+			// 绑定拖拽放开后的元素事件
+			dropElem.addEventListener('drop', function(e) {
+				// console.log('drop')
+				if (insertOjb.node && insertOjb.insertDirection == 'left') {
+					insertOjb.node.parentNode.insertBefore(node, insertOjb.node)
+				} else {
+					this.appendChild(node)
+				}
+				
+				this.removeEventListener('drop', arguments.callee)
+				this.removeEventListener('dragover', dragover)
+				node.removeEventListener('dragstart', dragstart)
+				// dropFields.forEach(function(fieldNode, index) {
+				// 	fieldNode.removeEventListener('dragover', dragoverField)
+				// })
+			}, false)
+
+			dropElem.addEventListener('dragover', dragover, false)
+
+			// dropFields.forEach(function(node, index) {
+			// 	node.addEventListener('dragover', dragoverField, false)
+			// })
+
+			function dragover(e) {
+				// console.log('dragover')
+				e.preventDefault()
+				// console.log(e);
+				if (/\bfield(?![a-zA-Z0-9\-\_])/g.test(e.toElement.className)) {
+					dragoverField(e)
+				}
+			}
+
+			function dragoverField(e) {
+				var field= e.toElement,
+					x = e.offsetX,
+					direction
+					elemMiddleX = field.offsetWidth / 2
+				
+				if (x > elemMiddleX) {
+					direction = 'right'
+				} else {
+					direction = 'left'
+				}
+				insertOjb.insertDirection = direction
+				insertOjb.node = field
+			}
+		}
+
+		function makeArray(arrLike) {
+			return Array.prototype.slice.call(arrLike)
+		}
+	</script>
+</body>
+</html>

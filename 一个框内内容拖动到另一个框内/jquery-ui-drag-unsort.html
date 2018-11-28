@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>拖动字段并排序</title>
+	<link rel="stylesheet" type="text/css" href="../js/plugin/jquery-ui-1.12.1/jquery-ui.min.css">
+	<style type="text/css">
+		.source-box, .target-box {
+			border: 1px black dashed;
+			margin-top: 2em;
+			padding: 1em;
+			background-color: #f5f5f5;
+		}
+		.source-box legend, .target-box legend {
+			/* background-color: #f5f5f5;
+			border: 1px black dashed; */
+			font-size: 1.2em;
+			background-color: #fff;
+		}
+		.field-list {
+			padding: 0.5em;
+			min-height: 2em;
+			background-color: #fff;
+			position: relative;
+		}
+		.field-list span {
+			padding: 0.2em 0.5em;
+			background-color: #d5d5d5;
+			float: left;
+			margin-right: 0.2em;
+		}
+
+		.field-list .field {
+			cursor: move;
+		}
+	</style>
+</head>
+<body>
+	<fieldset class="source-box">
+		<legend>数据库中的字段</legend>
+		<div class="field-list">
+			<span class="field">id</span>
+			<span class="field">title</span>
+			<span class="field">time</span>
+		</div>
+	</fieldset>
+
+	<fieldset class="target-box">
+		<legend>需要显示的字段</legend>
+		<div class="field-list">
+
+		</div>
+	</fieldset>
+
+	<script type="text/javascript" src="../js/lib/jquery-1.12.4.min.js"></script>
+	<script type="text/javascript" src="../js/plugin/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+	<script type="text/javascript">
+		$(function() {
+			var listArr = $('.field-list'),
+				srourceFields = listArr.eq(0).children('.field'),
+				targetFields = listArr.eq(1).children('.field')
+
+			srourceFields.draggable({
+				classes: {
+					'ui-draggable': 'highlight',
+				// 	"ui-droppable-dragging": "custom-state-active"
+				},
+				cursor: 'move',
+				helper: 'clone',
+				containment: 'body',
+				// apendTo: listArr.eq(1),
+				stack: listArr.eq(1),
+				// // snap: listArr.eq(1),
+				// // snapMode: 'inner'
+				revert: 'invalid'
+			})
+
+			listArr.eq(1).droppable({
+				classes: {
+					// 'ui-droppable-active': ''
+					// 'ui-droppable-hover': ''
+				},
+				accept: '.field-list:eq(0) > .field',
+				drop: function(event, ui) {
+					var $field = ui.draggable
+					$field.fadeOut(function() {
+						$field.appendTo(listArr.eq(1)).fadeIn()
+					})
+				}
+			})
+
+			listArr.eq(0).droppable({
+				accept: '.field-list:eq(1) > .field',
+				drop: function(event, ui) {
+					var $field = ui.draggable
+					$field.fadeOut(function() {
+						$field.appendTo(listArr.eq(0)).fadeIn()
+					})
+				}
+			})
+		})
+	</script>
+</body>
+</html>
